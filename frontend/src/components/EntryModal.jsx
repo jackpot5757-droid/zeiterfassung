@@ -10,9 +10,8 @@ export default function EntryModal({ entry, onClose, onSaved }) {
     end_time: entry?.end_time || '17:00',
     break_minutes: entry?.break_minutes || 0,
     client_id: entry?.client_id || '',
-    travel_costs: entry?.travel_costs || 0,
+    kilometers: entry?.kilometers || 0,
     parking_fees: entry?.parking_fees || 0,
-    other_costs: entry?.other_costs || 0,
     notes: entry?.notes || '',
   });
   const [clients, setClients] = useState([]);
@@ -25,7 +24,6 @@ export default function EntryModal({ entry, onClose, onSaved }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // Stunden live berechnen
   const calcHours = () => {
     const [sh, sm] = form.start_time.split(':').map(Number);
     const [eh, em] = form.end_time.split(':').map(Number);
@@ -42,9 +40,8 @@ export default function EntryModal({ entry, onClose, onSaved }) {
         ...form,
         client_id: form.client_id || null,
         break_minutes: Number(form.break_minutes),
-        travel_costs: Number(form.travel_costs),
+        kilometers: Number(form.kilometers),
         parking_fees: Number(form.parking_fees),
-        other_costs: Number(form.other_costs),
       };
       if (entry?.id) {
         await api.updateEntry(entry.id, payload);
@@ -117,23 +114,18 @@ export default function EntryModal({ entry, onClose, onSaved }) {
             </div>
           )}
 
-          <div className="section-title" style={{ marginTop: 4 }}>Kosten & Spesen</div>
+          <div className="section-title" style={{ marginTop: 4 }}>Fahrt & Kosten</div>
 
-          <div className="form-row-3">
+          <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Fahrtkosten €</label>
-              <input className="form-input" type="number" step="0.01" min="0" value={form.travel_costs}
-                onChange={e => set('travel_costs', e.target.value)} />
+              <label className="form-label">Gefahrene km</label>
+              <input className="form-input" type="number" step="0.1" min="0" value={form.kilometers}
+                onChange={e => set('kilometers', e.target.value)} placeholder="0" />
             </div>
             <div className="form-group">
               <label className="form-label">Parkgebühren €</label>
               <input className="form-input" type="number" step="0.01" min="0" value={form.parking_fees}
-                onChange={e => set('parking_fees', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Sonstiges €</label>
-              <input className="form-input" type="number" step="0.01" min="0" value={form.other_costs}
-                onChange={e => set('other_costs', e.target.value)} />
+                onChange={e => set('parking_fees', e.target.value)} placeholder="0.00" />
             </div>
           </div>
 

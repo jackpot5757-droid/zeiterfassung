@@ -7,6 +7,7 @@ const pool = new Pool({
 });
 
 async function initDb() {
+  // Tabellen erstellen
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -15,6 +16,8 @@ async function initDb() {
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'employee',
       hourly_rate REAL NOT NULL DEFAULT 0,
+      km_rate REAL NOT NULL DEFAULT 0.30,
+      travel_flat_rate REAL NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -46,19 +49,26 @@ async function initDb() {
       end_time TEXT NOT NULL,
       break_minutes INTEGER NOT NULL DEFAULT 0,
       hours_worked REAL NOT NULL DEFAULT 0,
-      travel_costs REAL NOT NULL DEFAULT 0,
+      kilometers REAL NOT NULL DEFAULT 0,
       parking_fees REAL NOT NULL DEFAULT 0,
-      other_costs REAL NOT NULL DEFAULT 0,
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
+  // Migration: neue Spalten hinzufügen falls noch nicht vorhanden
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS km_rate REAL NOT NULL DEFAULT 0.30;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS travel_flat_rate REAL NOT NULL DEFAULT 0;
+    ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS kilometers REAL NOT NULL DEFAULT 0;
+  `);
+
+  // Admin anlegen falls nicht vorhanden
   const { rows } = await pool.query("SELECT id FROM users WHERE role = 'admin'");
   if (rows.length === 0) {
     const hash = bcrypt.hashSync('admin123', 10);
     await pool.query(
-      "INSERT INTO users (name, email, password_hash, role, hourly_rate) VALUES ($1, $2, $3, 'admin', 0)",
+      "INSERT INTO users (name, email, password_hash, role, hourly_rate, km_rate, travel_flat_rate) VALUES ($1, $2, $3, 'admin', 0, 0.30, 0)",
       ['Administrator', 'admin@firma.de', hash]
     );
     console.log('✅ Admin-Account angelegt: admin@firma.de / admin123');

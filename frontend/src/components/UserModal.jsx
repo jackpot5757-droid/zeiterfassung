@@ -7,7 +7,9 @@ export default function UserModal({ user, onClose, onSaved }) {
     email: user?.email || '',
     password: '',
     role: user?.role || 'employee',
-    hourly_rate: user?.hourly_rate || 0,
+    hourly_rate: user?.hourly_rate ?? 0,
+    km_rate: user?.km_rate ?? 0.30,
+    travel_flat_rate: user?.travel_flat_rate ?? 0,
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -65,19 +67,33 @@ export default function UserModal({ user, onClose, onSaved }) {
               required={!user} />
           </div>
 
+          <div className="form-group">
+            <label className="form-label">Rolle</label>
+            <select className="form-input" value={form.role} onChange={e => set('role', e.target.value)}>
+              <option value="employee">Mitarbeiter</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          <div className="section-title" style={{ marginTop: 4 }}>Vergütung</div>
+
           <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Rolle</label>
-              <select className="form-input" value={form.role} onChange={e => set('role', e.target.value)}>
-                <option value="employee">Mitarbeiter</option>
-                <option value="admin">Administrator</option>
-              </select>
-            </div>
             <div className="form-group">
               <label className="form-label">Stundenlohn (€)</label>
               <input className="form-input" type="number" step="0.01" min="0" value={form.hourly_rate}
                 onChange={e => set('hourly_rate', e.target.value)} placeholder="0.00" />
             </div>
+            <div className="form-group">
+              <label className="form-label">km-Satz (€/km)</label>
+              <input className="form-input" type="number" step="0.01" min="0" value={form.km_rate}
+                onChange={e => set('km_rate', e.target.value)} placeholder="0.30" />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Anfahrtspauschale (€ pro Arbeitstag)</label>
+            <input className="form-input" type="number" step="0.01" min="0" value={form.travel_flat_rate}
+              onChange={e => set('travel_flat_rate', e.target.value)} placeholder="0.00" />
           </div>
 
           <button className="btn btn-primary btn-full" type="submit" disabled={saving}>

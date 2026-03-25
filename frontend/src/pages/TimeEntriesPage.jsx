@@ -31,7 +31,6 @@ export default function TimeEntriesPage() {
   const openNew = () => { setEditing(null); setShowModal(true); };
   const openEdit = (e) => { setEditing(e); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setEditing(null); };
-
   const onSaved = () => { closeModal(); load(); };
 
   const deleteEntry = async (id) => {
@@ -40,10 +39,9 @@ export default function TimeEntriesPage() {
   };
 
   const totals = entries.reduce((a, e) => ({
-    hours: a.hours + e.hours_worked,
-    salary: a.salary + e.salary,
-    costs: a.costs + e.total_costs
-  }), { hours: 0, salary: 0, costs: 0 });
+    hours: a.hours + Number(e.hours_worked),
+    payout: a.payout + Number(e.total_payout),
+  }), { hours: 0, payout: 0 });
 
   return (
     <div>
@@ -51,7 +49,6 @@ export default function TimeEntriesPage() {
         <h1 className="page-title">Zeiterfassung</h1>
       </div>
 
-      {/* Filter */}
       <div className="card" style={{ padding: '12px 14px', marginBottom: 12 }}>
         <div className="form-row">
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -67,7 +64,6 @@ export default function TimeEntriesPage() {
         </div>
       </div>
 
-      {/* Zusammenfassung */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Stunden gesamt</div>
@@ -77,13 +73,12 @@ export default function TimeEntriesPage() {
         <div className="stat-card">
           <div className="stat-label">Auszahlung</div>
           <div className="stat-value" style={{ color: 'var(--success)' }}>
-            {(totals.salary + totals.costs).toFixed(2)} €
+            {totals.payout.toFixed(2)} €
           </div>
-          <div className="stat-sub">inkl. {totals.costs.toFixed(2)} € Kosten</div>
+          <div className="stat-sub">inkl. aller Kosten</div>
         </div>
       </div>
 
-      {/* Einträge */}
       {loading ? <div className="spinner" /> : entries.length === 0 ? (
         <div className="empty">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -101,15 +96,14 @@ export default function TimeEntriesPage() {
                 <span className="badge badge-blue" style={{ marginTop: 4, display: 'inline-block' }}>{e.client_name}</span>
               )}
             </div>
-            <div className="entry-hours">{e.hours_worked}h</div>
+            <div className="entry-hours">{Number(e.hours_worked).toFixed(2)}h</div>
           </div>
 
           <div className="entry-meta">
             <span>🕐 {e.start_time} – {e.end_time}</span>
             {e.break_minutes > 0 && <span>☕ {e.break_minutes} Min Pause</span>}
-            {e.travel_costs > 0 && <span>🚗 {e.travel_costs.toFixed(2)} €</span>}
-            {e.parking_fees > 0 && <span>🅿️ {e.parking_fees.toFixed(2)} €</span>}
-            {e.other_costs > 0 && <span>📋 {e.other_costs.toFixed(2)} €</span>}
+            {Number(e.kilometers) > 0 && <span>🚗 {Number(e.kilometers).toFixed(1)} km</span>}
+            {Number(e.parking_fees) > 0 && <span>🅿️ {Number(e.parking_fees).toFixed(2)} €</span>}
           </div>
 
           {e.notes && (
@@ -118,9 +112,12 @@ export default function TimeEntriesPage() {
             </div>
           )}
 
-          <div className="entry-salary">
-            Lohn: {e.salary.toFixed(2)} € | Kosten: {e.total_costs.toFixed(2)} € |{' '}
-            <strong>Gesamt: {e.total_payout.toFixed(2)} €</strong>
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--gray-500)', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <span>Lohn: {Number(e.salary).toFixed(2)} €</span>
+            {Number(e.km_costs) > 0 && <span>km-Kosten: {Number(e.km_costs).toFixed(2)} €</span>}
+            {Number(e.travel_flat) > 0 && <span>Anfahrt: {Number(e.travel_flat).toFixed(2)} €</span>}
+            {Number(e.parking_fees) > 0 && <span>Parken: {Number(e.parking_fees).toFixed(2)} €</span>}
+            <strong style={{ color: 'var(--success)' }}>Gesamt: {Number(e.total_payout).toFixed(2)} €</strong>
           </div>
 
           {(user.role === 'admin' || e.user_id === user.id) && (
