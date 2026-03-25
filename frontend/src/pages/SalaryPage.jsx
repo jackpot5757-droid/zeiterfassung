@@ -21,20 +21,19 @@ export default function SalaryPage() {
 
   useEffect(() => { load(); }, [month, year]);
 
-  const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
-  const totals = report.reduce((a, r) => ({
-    hours: a.hours + Number(r.total_hours || 0),
-    payout: a.payout + Number(r.total_payout || 0),
-  }), { hours: 0, payout: 0 });
+  // Mitarbeiter sehen nur sich selbst, Admin sieht alle
+  const myReport = user.role === 'admin' ? report : report.filter(r => r.user_id === user.id);
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Gehaltsübersicht</h1>
+        <h1 className="page-title">Gehalt</h1>
       </div>
 
-      <div className="card" style={{ padding: '12px 14px', marginBottom: 12 }}>
+      <div className="card" style={{ padding: '12px 14px', marginBottom: 16 }}>
         <div className="form-row">
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Monat</label>
@@ -51,72 +50,122 @@ export default function SalaryPage() {
         </div>
       </div>
 
-      {user.role === 'admin' && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">Stunden gesamt</div>
-            <div className="stat-value">{totals.hours.toFixed(1)}h</div>
-            <div className="stat-sub">alle Mitarbeiter</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Auszahlung gesamt</div>
-            <div className="stat-value" style={{ color: 'var(--success)', fontSize: 18 }}>
-              {totals.payout.toFixed(2)} €
-            </div>
-            <div className="stat-sub">inkl. aller Kosten</div>
-          </div>
-        </div>
-      )}
-
-      {loading ? <div className="spinner" /> : report.length === 0 ? (
+      {loading ? <div className="spinner" /> : myReport.length === 0 ? (
         <div className="empty">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>
+          </svg>
           <p>Keine Daten für diesen Monat</p>
         </div>
-      ) : report.map(r => (
-        <div key={r.user_id} className="card" style={{ marginBottom: 10 }}>
-          <div className="card-header">
-            <div>
-              <div className="card-title">{r.employee_name}</div>
-              <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
-                {Number(r.hourly_rate).toFixed(2)} €/Std · {Number(r.km_rate).toFixed(2)} €/km · {r.entry_count} Einträge
-              </div>
-            </div>
-            <div className="salary-amount">{Number(r.total_payout).toFixed(2)} €</div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <InfoRow label="Arbeitsstunden" value={`${Number(r.total_hours).toFixed(2)} h`} />
-            <InfoRow label="Brutto-Lohn" value={`${Number(r.gross_salary).toFixed(2)} €`} />
-            <InfoRow label="Gefahrene km" value={`${Number(r.total_km).toFixed(1)} km`} />
-            <InfoRow label="km-Vergütung" value={`${Number(r.total_km_costs).toFixed(2)} €`} />
-            <InfoRow
-              label={`Anfahrtspauschale (${r.work_days} Tage × ${Number(r.travel_flat_rate).toFixed(2)} €)`}
-              value={`${Number(r.travel_total).toFixed(2)} €`}
-            />
-            <InfoRow label="Parkgebühren" value={`${Number(r.total_parking).toFixed(2)} €`} />
-          </div>
-
-          <div style={{
-            marginTop: 12, padding: '10px 12px', background: 'var(--success-light)',
-            borderRadius: 8, display: 'flex', justifyContent: 'space-between'
-          }}>
-            <span style={{ fontWeight: 600, color: 'var(--success)' }}>Gesamt-Auszahlung</span>
-            <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--success)' }}>
-              {Number(r.total_payout).toFixed(2)} €
-            </span>
-          </div>
-        </div>
+      ) : myReport.map(r => (
+        <SalaryCard key={r.user_id} r={r} month={month} year={year} MONTHS={MONTHS} showName={user.role === 'admin'} />
       ))}
     </div>
   );
 }
 
-function InfoRow({ label, value }) {
+function SalaryCard({ r, month, year, MONTHS, showName }) {
+  const exportExcel = () => {
+    const rows = [
+      ['Seni Fee Alltagsbetreuung'],
+      [`${showName ? r.employee_name + ' — ' : ''}${MONTHS[month-1]} ${year}`],
+      [],
+      ['Position', 'Betrag'],
+      ['Arbeitsstunden Gesamt', `${Number(r.total_hours).toFixed(2)} Std.`],
+      ['Stundenlohn', `${Number(r.hourly_rate).toFixed(2)} €`],
+      ['Gehalt nur Stunden', `${Number(r.gross_salary).toFixed(2)} €`],
+      [`Fahrtgeld je Fahrt ${Number(r.travel_flat_rate).toFixed(2)} €`, `${Number(r.travel_total).toFixed(2)} €`],
+      [`Kilometergeld (${Number(r.total_km).toFixed(1)} km × ${Number(r.km_rate).toFixed(2)} €)`, `${Number(r.total_km_costs).toFixed(2)} €`],
+      ['Parkgebühren', `${Number(r.total_parking).toFixed(2)} €`],
+      ['Abrechnung Gesamt', `${Number(r.total_payout).toFixed(2)} €`],
+    ];
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Abrechnung_${showName ? r.employee_name + '_' : ''}${MONTHS[month-1]}_${year}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const printPDF = () => {
+    const content = `
+      <html><head><style>
+        body { font-family: Arial, sans-serif; padding: 30px; color: #333; }
+        h1 { color: #7c3aed; border-bottom: 2px solid #7c3aed; padding-bottom: 8px; }
+        h2 { color: #555; font-size: 16px; }
+        .row { display: flex; justify-content: space-between; padding: 10px 14px;
+               border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; background: #fafafa; }
+        .label { color: #6b7280; font-size: 13px; }
+        .value { font-size: 22px; font-weight: bold; text-align: center; margin: 4px 0; }
+        .total { background: #f3e8ff; border-color: #7c3aed; }
+        .total .value { color: #7c3aed; font-size: 26px; }
+      </style></head><body>
+        <h1>Seni Fee Alltagsbetreuung</h1>
+        <h2>${showName ? r.employee_name + ' — ' : ''}${MONTHS[month-1]} ${year}</h2>
+        <div class="row total"><div class="label">Abrechnung Gesamt</div><div class="value">${Number(r.total_payout).toFixed(2)} €</div></div>
+        <div class="row"><div class="label">Arbeitsstunden Gesamt</div><div class="value">${Number(r.total_hours).toFixed(2)} Std.</div></div>
+        <div class="row"><div class="label">Stundenlohn</div><div class="value">${Number(r.hourly_rate).toFixed(2)} €</div></div>
+        <div class="row"><div class="label">Gehalt nur Stunden</div><div class="value">${Number(r.gross_salary).toFixed(2)} €</div></div>
+        <div class="row"><div class="label">Fahrtgeld je Fahrt ${Number(r.travel_flat_rate).toFixed(2)} €</div><div class="value">${Number(r.travel_total).toFixed(2)} €</div></div>
+        <div class="row"><div class="label">Kilometergeld × ${Number(r.km_rate).toFixed(2)} €</div><div class="value">${Number(r.total_km_costs).toFixed(2)} €</div></div>
+        <div class="row"><div class="label">Gefahrene Kilometer</div><div class="value">${Number(r.total_km).toFixed(1)} km</div></div>
+        <div class="row"><div class="label">Parkgebühren</div><div class="value">${Number(r.total_parking).toFixed(2)} €</div></div>
+      </body></html>
+    `;
+    const w = window.open('', '_blank');
+    w.document.write(content);
+    w.document.close();
+    w.print();
+  };
+
   return (
-    <div style={{ padding: '8px 10px', background: 'var(--gray-50)', borderRadius: 6 }}>
-      <div style={{ fontSize: 11, color: 'var(--gray-500)', marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 600 }}>{value}</div>
+    <div className="card" style={{ marginBottom: 16 }}>
+      {showName && (
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12, color: 'var(--primary)' }}>
+          {r.employee_name}
+        </div>
+      )}
+
+      <SalaryBox label="Arbeitsstunden Gesamt" value={`${Number(r.total_hours).toFixed(2)} Std.`} />
+      <SalaryBox label="Abrechnung Gesamt" value={`${Number(r.total_payout).toFixed(2)} €`} highlight />
+      <SalaryBox label={`Fahrtgeld je Fahrt ${Number(r.travel_flat_rate).toFixed(2)} €`}
+        value={`${Number(r.travel_total).toFixed(2)} €`} />
+      <SalaryBox label={`Kilometergeld × ${Number(r.km_rate).toFixed(2)} €`}
+        value={`${Number(r.total_km_costs).toFixed(2)} €`} />
+      <SalaryBox label="Parkgebühren" value={`${Number(r.total_parking).toFixed(2)} €`} />
+      <SalaryBox label="Gehalt nur Stunden" value={`${Number(r.gross_salary).toFixed(2)} €`} />
+      <SalaryBox label="Stundenlohn" value={`${Number(r.hourly_rate).toFixed(2)} €`} />
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <button className="btn btn-primary btn-full"
+          style={{ background: 'linear-gradient(135deg, #7c3aed, #ec4899)' }}
+          onClick={printPDF}>
+          PDF erstellen
+        </button>
+        <button className="btn btn-full"
+          style={{ background: '#16a34a', color: 'white', fontWeight: 600 }}
+          onClick={exportExcel}>
+          Excel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SalaryBox({ label, value, highlight }) {
+  return (
+    <div style={{
+      border: `1px solid ${highlight ? 'var(--primary)' : 'var(--gray-200)'}`,
+      borderRadius: 10, padding: '10px 16px', marginBottom: 8,
+      background: highlight ? 'var(--primary-light)' : 'var(--gray-50)'
+    }}>
+      <div style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 4 }}>{label}</div>
+      <div style={{
+        fontSize: highlight ? 24 : 20, fontWeight: 700, textAlign: 'center',
+        color: highlight ? 'var(--primary)' : '#111'
+      }}>{value}</div>
     </div>
   );
 }

@@ -24,12 +24,16 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS clients (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
-      company TEXT,
+      vorname TEXT,
       street TEXT,
       city TEXT,
       zip TEXT,
       phone TEXT,
-      email TEXT,
+      geburtsdatum TEXT,
+      versichertennummer TEXT,
+      krankenkasse TEXT,
+      pflegegrad INTEGER DEFAULT 0,
+      krankheiten TEXT,
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -61,6 +65,12 @@ async function initDb() {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS km_rate REAL NOT NULL DEFAULT 0.30;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS travel_flat_rate REAL NOT NULL DEFAULT 0;
     ALTER TABLE time_entries ADD COLUMN IF NOT EXISTS kilometers REAL NOT NULL DEFAULT 0;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS vorname TEXT;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS geburtsdatum TEXT;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS versichertennummer TEXT;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS krankenkasse TEXT;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS pflegegrad INTEGER DEFAULT 0;
+    ALTER TABLE clients ADD COLUMN IF NOT EXISTS krankheiten TEXT;
   `);
 
   // Admin anlegen falls nicht vorhanden

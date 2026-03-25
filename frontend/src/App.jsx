@@ -11,8 +11,8 @@ export const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
 const NAV = [
-  { id: 'entries', label: 'Zeiten', icon: ClockIcon },
-  { id: 'clients', label: 'Kunden', icon: UsersIcon },
+  { id: 'entries', label: 'Zeitnachweis', icon: ClockIcon },
+  { id: 'clients', label: 'Klienten', icon: UsersIcon },
   { id: 'salary', label: 'Gehalt', icon: EuroIcon },
   { id: 'admin', label: 'Admin', icon: SettingsIcon, adminOnly: true },
   { id: 'profile', label: 'Profil', icon: PersonIcon },
@@ -54,8 +54,15 @@ export default function App() {
     <AuthContext.Provider value={{ user, logout }}>
       <div className="app">
         <header className="top-bar">
-          <span className="top-bar-title">Zeiterfassung</span>
-          <span className="top-bar-user">👤 {user.name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo.png" alt="Seni Fee" style={{ height: 32, objectFit: 'contain' }}
+              onError={e => e.target.style.display='none'} />
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.1 }}>Seni Fee</div>
+              <div style={{ fontSize: 10, opacity: 0.8, letterSpacing: '0.05em' }}>ALLTAGSBETREUUNG</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 12, opacity: 0.85 }}>👤 {user.name}</span>
         </header>
 
         <main className="main-content">

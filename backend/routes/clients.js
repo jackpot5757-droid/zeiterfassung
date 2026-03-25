@@ -63,9 +63,13 @@ router.post('/', requireAdmin, async (req, res) => {
     const { name, company, street, city, zip, phone, email, notes, assigned_user_ids } = req.body;
     if (!name) return res.status(400).json({ error: 'Name erforderlich' });
 
+    const { vorname, geburtsdatum, versichertennummer, krankenkasse, pflegegrad, krankheiten } = req.body;
     const { rows } = await pool.query(
-      'INSERT INTO clients (name, company, street, city, zip, phone, email, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-      [name.trim(), company || null, street || null, city || null, zip || null, phone || null, email || null, notes || null]
+      `INSERT INTO clients (name, vorname, street, city, zip, phone, geburtsdatum, versichertennummer, krankenkasse, pflegegrad, krankheiten, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+      [name.trim(), vorname || null, street || null, city || null, zip || null, phone || null,
+       geburtsdatum || null, versichertennummer || null, krankenkasse || null,
+       pflegegrad || 0, krankheiten || null, notes || null]
     );
     const clientId = rows[0].id;
 
@@ -90,9 +94,14 @@ router.put('/:id', requireAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT id FROM clients WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Kunde nicht gefunden' });
 
+    const { vorname, geburtsdatum, versichertennummer, krankenkasse, pflegegrad, krankheiten } = req.body;
     await pool.query(
-      'UPDATE clients SET name=$1, company=$2, street=$3, city=$4, zip=$5, phone=$6, email=$7, notes=$8 WHERE id=$9',
-      [name, company || null, street || null, city || null, zip || null, phone || null, email || null, notes || null, req.params.id]
+      `UPDATE clients SET name=$1, vorname=$2, street=$3, city=$4, zip=$5, phone=$6,
+       geburtsdatum=$7, versichertennummer=$8, krankenkasse=$9, pflegegrad=$10, krankheiten=$11, notes=$12
+       WHERE id=$13`,
+      [name, vorname || null, street || null, city || null, zip || null, phone || null,
+       geburtsdatum || null, versichertennummer || null, krankenkasse || null,
+       pflegegrad || 0, krankheiten || null, notes || null, req.params.id]
     );
 
     await pool.query('DELETE FROM client_assignments WHERE client_id = $1', [req.params.id]);

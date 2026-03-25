@@ -48,9 +48,9 @@ router.get('/report/salary', requireAuth, async (req, res) => {
     query += ' GROUP BY u.id, u.name, u.hourly_rate, u.km_rate, u.travel_flat_rate ORDER BY u.name';
     const { rows } = await pool.query(query, params);
 
-    // Anfahrtspauschale pro Arbeitstag
+    // Anfahrtspauschale pro Besuch (pro Eintrag)
     const report = rows.map(r => {
-      const travel_total = Number(r.work_days) * Number(r.travel_flat_rate);
+      const travel_total = Number(r.entry_count) * Number(r.travel_flat_rate);
       const total_payout = Number(r.gross_salary) + Number(r.total_km_costs) + travel_total + Number(r.total_parking);
       return {
         ...r,
