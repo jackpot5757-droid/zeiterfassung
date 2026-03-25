@@ -93,7 +93,9 @@ export default function TimeEntriesPage() {
                 <div className="entry-date">{e.employee_name}</div>
               )}
               {e.client_name && (
-                <span className="badge badge-blue" style={{ marginTop: 4, display: 'inline-block' }}>{e.client_name}</span>
+                <span className="badge badge-blue" style={{ marginTop: 4, display: 'inline-block' }}>
+                  {e.client_name}{e.client_vorname ? `, ${e.client_vorname}` : ''}
+                </span>
               )}
             </div>
             <div className="entry-hours">{Number(e.hours_worked).toFixed(2)}h</div>

@@ -75,7 +75,7 @@ router.get('/', requireAuth, async (req, res) => {
     const { from, to, user_id } = req.query;
     let query = `
       SELECT t.*, u.name as employee_name, u.hourly_rate, u.km_rate, u.travel_flat_rate,
-             c.name as client_name
+             c.name as client_name, c.vorname as client_vorname
       FROM time_entries t
       JOIN users u ON t.user_id = u.id
       LEFT JOIN clients c ON t.client_id = c.id

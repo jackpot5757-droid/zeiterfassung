@@ -101,18 +101,18 @@ export default function EntryModal({ entry, onClose, onSaved }) {
             </div>
           </div>
 
-          {clients.length > 0 && (
-            <div className="form-group">
-              <label className="form-label">Kunde (optional)</label>
-              <select className="form-input" value={form.client_id}
-                onChange={e => set('client_id', e.target.value)}>
-                <option value="">– kein Kunde –</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ''}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="form-group">
+            <label className="form-label">Klient</label>
+            <select className="form-input" value={form.client_id}
+              onChange={e => set('client_id', e.target.value)}>
+              <option value="">– bitte wählen –</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name}{c.vorname ? `, ${c.vorname}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="section-title" style={{ marginTop: 4 }}>Fahrt & Kosten</div>
 
